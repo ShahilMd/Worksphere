@@ -1,9 +1,14 @@
 import "dotenv/config";
-import express, { NextFunction, Request, Response, urlencoded } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import session from "cookie-session";
 import { config } from "./config/app.config";
-import { use } from "passport";
+import connectDB from "./config/db.config";
+import { HTTPSTATUS } from "./config/http.config";
+import { errorHandler } from "./middlewares/errorHandler.middleware";
+import { asyncHandler } from "./middlewares/asyncHandler.middleware";
+import { BadRequestException, HttpException, UnauthorizedException } from "./utils/appError";
+
 
 const app = express()
 
@@ -28,12 +33,20 @@ app.use(cors({
   credentials: true,
 }))
 
-app.get('/',(req: Request,res: Response ,next: NextFunction)=>{
-  res.status(200).json({
-    message: " THis is home Route"
-  })
-})
+app.get(
+  "/",
+  asyncHandler(
+    async(req: Request, res: Response, next: NextFunction) => {
+      res.status(HTTPSTATUS.OK).json({
+        message: "This is the home route",
+      });
+    }
+  )
+);
+
+app.use(errorHandler);
 
 app.listen(config.PORT,async ()=>{
   console.log(`Server is listing on port ${config.PORT}`)
+  await connectDB();
 })
